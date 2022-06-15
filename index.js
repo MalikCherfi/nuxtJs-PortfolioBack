@@ -103,6 +103,32 @@ app.delete("/post/:id", (req, res) => {
     });
 });
 
+app.put("/post/:id", async (req, res) => {
+  const { id } = req.params;
+  const newAttribute = req.body;
+
+  prisma.post
+    .findUnique({ where: { id: parseInt(id, 10) } })
+    .then((project) => {
+      if (project) {
+        prisma.post
+          .update({
+            data: { ...newAttribute },
+            where: { id: parseInt(id, 10) },
+          })
+          .then(() => {
+            res.status(201).json({ ...newAttribute });
+          })
+          .catch((err) => {
+            console.log(err);
+            res.status(501).send("Error updating the project");
+          });
+      } else {
+        res.status(404).send("Error retrieving project from database");
+      }
+    });
+});
+
 app.listen(port, (err) => {
   if (err) {
     console.error("Something bad happened");
