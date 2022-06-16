@@ -11,12 +11,13 @@ datasource db {
 }
 
 model Post {
-  id      Int     @id @default(autoincrement())
-  title   String  @db.VarChar(255)
-  details String?
-  images  Json
-  years   Int
-  link    String
+  id         Int     @id @default(autoincrement())
+  title      String  @db.VarChar(255)
+  details    String?
+  images     Json
+  imagesPath Json
+  years      Int
+  link       String
 }
 
 model User {
