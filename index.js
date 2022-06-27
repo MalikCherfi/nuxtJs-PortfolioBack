@@ -22,6 +22,7 @@ const multer = require("multer");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+// Storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "../nuxtTestBack/public/images");
@@ -33,19 +34,19 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// User
 app.get("/users", async (req, res) => {
   const users = await prisma.user.findMany();
   res.json(users);
 });
 
+// Post Project
 const cpUpload = upload.fields([
   { name: "image.principal", maxCount: 1 },
   { name: "image.secondary", maxCount: 10 },
 ]);
 
 app.post("/upload", cpUpload, (req, res) => {
-  console.log(req.files);
-
   res.send([
     { principal: req.files["image.principal"][0].filename },
     { secondary: req.files["image.secondary"].map((e) => e.filename) },
@@ -54,9 +55,24 @@ app.post("/upload", cpUpload, (req, res) => {
 
 app.post("/post", (req, res) => {
   const description = req.body;
-  console.log(description);
+  // const { technology, ...descriptionWithoutTechnology } = description;
   prisma.post
-    .create({ data: { ...description } })
+    .create({
+      data: {
+        ...description,
+        // technologies: {
+        //   create: [
+        //     {
+        //       technology: {
+        //         create: {
+        //           name: description.technology,
+        //         },
+        //       },
+        //     },
+        //   ],
+        // },
+      },
+    })
     .then((createdProject) => {
       res.status(201).json(createdProject);
     })
@@ -66,6 +82,7 @@ app.post("/post", (req, res) => {
     });
 });
 
+// Get Project
 app.get("/post", (req, res) => {
   prisma.post
     .findMany()
@@ -78,6 +95,7 @@ app.get("/post", (req, res) => {
     });
 });
 
+// Get One Project
 app.get("/post/:id", (req, res) => {
   const { id } = req.params;
   prisma.post
@@ -92,6 +110,7 @@ app.get("/post/:id", (req, res) => {
     });
 });
 
+// Delete One Project
 app.delete("/post/:id", (req, res) => {
   const { id } = req.params;
   prisma.post
@@ -105,6 +124,7 @@ app.delete("/post/:id", (req, res) => {
     });
 });
 
+// Update One Project
 app.put("/post/:id", async (req, res) => {
   const { id } = req.params;
   const newAttribute = req.body;
@@ -128,6 +148,36 @@ app.put("/post/:id", async (req, res) => {
       } else {
         res.status(404).send("Error retrieving project from database");
       }
+    });
+});
+
+// Create Technology
+app.post("/technology", (req, res) => {
+  const description = req.body;
+  const { id, name } = description;
+  prisma.technology
+    .create({
+      data: {
+        name: name,
+        posts: {
+          create: [
+            {
+              post: {
+                connect: {
+                  id: id,
+                },
+              },
+            },
+          ],
+        },
+      },
+    })
+    .then((createdTechnology) => {
+      res.status(201).json(createdTechnology);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error saving technology");
     });
 });
 

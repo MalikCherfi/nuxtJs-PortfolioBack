@@ -11,13 +11,29 @@ datasource db {
 }
 
 model Post {
-  id         Int     @id @default(autoincrement())
-  title      String  @db.VarChar(255)
-  details    String?
-  images     Json
-  imagesPath Json
-  years      Int
-  link       String
+  id           Int                   @id @default(autoincrement())
+  title        String                @db.VarChar(255)
+  details      String?
+  images       Json
+  imagesPath   Json
+  years        Int
+  link         String
+  technologies TechnologiesOnPosts[]
+}
+
+model Technology {
+  id    Int                   @id @default(autoincrement())
+  name  String                @db.VarChar(255)
+  posts TechnologiesOnPosts[]
+}
+
+model TechnologiesOnPosts {
+  post         Post       @relation(fields: [postId], references: [id])
+  postId       Int
+  technology   Technology @relation(fields: [technologyId], references: [id])
+  technologyId Int
+
+  @@id([postId, technologyId])
 }
 
 model User {
