@@ -28,9 +28,9 @@ model Technology {
 }
 
 model TechnologiesOnPosts {
-  post         Post       @relation(fields: [postId], references: [id])
+  post         Post       @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   postId       Int
-  technology   Technology @relation(fields: [technologyId], references: [id])
+  technology   Technology @relation(fields: [technologyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   technologyId Int
 
   @@id([postId, technologyId])
