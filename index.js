@@ -55,22 +55,10 @@ app.post("/upload", cpUpload, (req, res) => {
 
 app.post("/post", (req, res) => {
   const description = req.body;
-  // const { technology, ...descriptionWithoutTechnology } = description;
   prisma.post
     .create({
       data: {
         ...description,
-        // technologies: {
-        //   create: [
-        //     {
-        //       technology: {
-        //         create: {
-        //           name: description.technology,
-        //         },
-        //       },
-        //     },
-        //   ],
-        // },
       },
     })
     .then((createdProject) => {
@@ -82,8 +70,8 @@ app.post("/post", (req, res) => {
     });
 });
 
-// Get Project
-app.get("/post", (req, res) => {
+// Get All Projects
+app.get("/post", (_, res) => {
   prisma.post
     .findMany()
     .then((project) => {
@@ -155,29 +143,72 @@ app.put("/post/:id", async (req, res) => {
 app.post("/technology", (req, res) => {
   const description = req.body;
   const { id, name } = description;
-  prisma.technology
-    .create({
-      data: {
-        name: name,
-        posts: {
-          create: [
-            {
-              post: {
-                connect: {
-                  id: id,
+  if (typeof id == "number") {
+    prisma.technology
+      .create({
+        data: {
+          name: name,
+          posts: {
+            create: [
+              {
+                post: {
+                  connect: {
+                    id: id,
+                  },
                 },
               },
-            },
-          ],
+            ],
+          },
         },
-      },
-    })
-    .then((createdTechnology) => {
-      res.status(201).json(createdTechnology);
+      })
+      .then((createdTechnology) => {
+        res.status(201).json(createdTechnology);
+      })
+      .catch((err) => {
+        console.error(err);
+        res.status(500).send("Error saving technology");
+      });
+  } else {
+    prisma.technology
+      .create({
+        data: {
+          name: name,
+        },
+      })
+      .then((createdTechnology) => {
+        res.status(201).json(createdTechnology);
+      })
+      .catch((err) => {
+        console.error(err);
+        res.status(500).send("Error saving technology");
+      });
+  }
+});
+
+//Get All technologies
+app.get("/technology", (_, res) => {
+  prisma.technology
+    .findMany()
+    .then((project) => {
+      res.status(201).send(project);
     })
     .catch((err) => {
       console.error(err);
-      res.status(500).send("Error saving technology");
+      res.status(500).send("Error retrieving technology from database");
+    });
+});
+
+// Delete One Technology
+app.delete("/technology/:id", (req, res) => {
+  const { id } = req.params;
+  prisma.technology
+    .delete({ where: { id: parseInt(id, 10) } })
+    .then(() => {
+      res.status(201).send("Technology deleted with success");
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send("Error deleting the technology");
     });
 });
 
