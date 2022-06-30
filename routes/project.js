@@ -64,9 +64,17 @@ projectsRouter.get("/post", (_, res) => {
 projectsRouter.get("/post/:id", (req, res) => {
   const { id } = req.params;
   prisma.post
-    .findUnique({ where: { id: parseInt(id, 10) } })
+    .findUnique({
+      where: { id: parseInt(id, 10) },
+      include: {
+        technologies: {
+          select: {
+            technology: true,
+          },
+        },
+      },
+    })
     .then((project) => {
-      console.log(project);
       res.status(200).send(project);
     })
     .catch((err) => {

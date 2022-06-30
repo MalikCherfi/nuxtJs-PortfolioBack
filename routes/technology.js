@@ -53,14 +53,15 @@ technologiesRouter.post("/technology", (req, res) => {
 technologiesRouter.get("/technology", (_, res) => {
   prisma.technology
     .findMany()
-    .then((project) => {
-      res.status(201).send(project);
+    .then((techno) => {
+      res.status(201).send(techno);
     })
     .catch((err) => {
       console.error(err);
       res.status(500).send("Error retrieving technology from database");
     });
 });
+
 
 // Delete One Technology
 technologiesRouter.delete("/technology/:id", (req, res) => {
