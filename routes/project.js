@@ -1,21 +1,4 @@
-const express = require("express");
-const app = express();
-
-app.use(express.json({ limit: "25mb" }));
-app.use(express.urlencoded({ extended: true, limit: "25mb" }));
-
-const port = 8000;
-
-const cors = require("cors");
-
-app.use(express.static("public"));
-
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  })
-);
+const projectsRouter = require("express").Router();
 
 const multer = require("multer");
 
@@ -34,26 +17,20 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// User
-app.get("/users", async (req, res) => {
-  const users = await prisma.user.findMany();
-  res.json(users);
-});
-
 // Post Project
 const cpUpload = upload.fields([
   { name: "image.principal", maxCount: 1 },
   { name: "image.secondary", maxCount: 10 },
 ]);
 
-app.post("/upload", cpUpload, (req, res) => {
+projectsRouter.post("/upload", cpUpload, (req, res) => {
   res.send([
     { principal: req.files["image.principal"][0].filename },
     { secondary: req.files["image.secondary"].map((e) => e.filename) },
   ]);
 });
 
-app.post("/post", (req, res) => {
+projectsRouter.post("/post", (req, res) => {
   const description = req.body;
   prisma.post
     .create({
@@ -71,7 +48,7 @@ app.post("/post", (req, res) => {
 });
 
 // Get All Projects
-app.get("/post", (_, res) => {
+projectsRouter.get("/post", (_, res) => {
   prisma.post
     .findMany()
     .then((project) => {
@@ -84,7 +61,7 @@ app.get("/post", (_, res) => {
 });
 
 // Get One Project
-app.get("/post/:id", (req, res) => {
+projectsRouter.get("/post/:id", (req, res) => {
   const { id } = req.params;
   prisma.post
     .findUnique({ where: { id: parseInt(id, 10) } })
@@ -99,7 +76,7 @@ app.get("/post/:id", (req, res) => {
 });
 
 // Delete One Project
-app.delete("/post/:id", (req, res) => {
+projectsRouter.delete("/post/:id", (req, res) => {
   const { id } = req.params;
   prisma.post
     .delete({ where: { id: parseInt(id, 10) } })
@@ -113,7 +90,7 @@ app.delete("/post/:id", (req, res) => {
 });
 
 // Update One Project
-app.put("/post/:id", async (req, res) => {
+projectsRouter.put("/post/:id", async (req, res) => {
   const { id } = req.params;
   const newAttribute = req.body;
 
@@ -139,83 +116,4 @@ app.put("/post/:id", async (req, res) => {
     });
 });
 
-// Create Technology
-app.post("/technology", (req, res) => {
-  const description = req.body;
-  const { id, name } = description;
-  if (typeof id == "number") {
-    prisma.technology
-      .create({
-        data: {
-          name: name,
-          posts: {
-            create: [
-              {
-                post: {
-                  connect: {
-                    id: id,
-                  },
-                },
-              },
-            ],
-          },
-        },
-      })
-      .then((createdTechnology) => {
-        res.status(201).json(createdTechnology);
-      })
-      .catch((err) => {
-        console.error(err);
-        res.status(500).send("Error saving technology");
-      });
-  } else {
-    prisma.technology
-      .create({
-        data: {
-          name: name,
-        },
-      })
-      .then((createdTechnology) => {
-        res.status(201).json(createdTechnology);
-      })
-      .catch((err) => {
-        console.error(err);
-        res.status(500).send("Error saving technology");
-      });
-  }
-});
-
-//Get All technologies
-app.get("/technology", (_, res) => {
-  prisma.technology
-    .findMany()
-    .then((project) => {
-      res.status(201).send(project);
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send("Error retrieving technology from database");
-    });
-});
-
-// Delete One Technology
-app.delete("/technology/:id", (req, res) => {
-  const { id } = req.params;
-  prisma.technology
-    .delete({ where: { id: parseInt(id, 10) } })
-    .then(() => {
-      res.status(201).send("Technology deleted with success");
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).send("Error deleting the technology");
-    });
-});
-
-app.listen(port, (err) => {
-  if (err) {
-    console.error("Something bad happened");
-  } else {
-    console.log(`Server is listening on ${port}`);
-  }
-});
+module.exports = projectsRouter;
