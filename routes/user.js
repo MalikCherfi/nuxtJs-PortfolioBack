@@ -25,26 +25,27 @@ userRouter.post("/auth/register", async (req, res) => {
 
 userRouter.post("/session", async (req, res) => {
   const { email, password } = req.body;
-  const user = await prisma.user.findUnique({
-    where: {
-      email: email,
-    },
-  });
-  if (!user) {
-    res.json("User not registered");
-  } else {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
+
     const checkPassword = bcrypt.compareSync(password, user.password);
 
     if (!checkPassword) {
-      console.log("Email address or password not valid");
+      res.json("Email address or password not valid");
+    } else {
+      const accessToken = await jwt.signAccessToken(user);
+      res.json(accessToken);
     }
-    const accessToken = await jwt.signAccessToken(user);
-    res.json({ ...user, accessToken });
+  } catch {
+    res.json("User not registered");
   }
 });
 
 userRouter.get("/session/user", async (req, res, next) => {
-  console.log("eeehhhhhhhhhhhhhhhhhhhhhhhhh");
   if (!req.headers.authorization) {
     return next(console.log("Access token is required"));
   }
@@ -56,7 +57,7 @@ userRouter.get("/session/user", async (req, res, next) => {
     .verifyAccessToken(token)
     .then((user) => {
       prisma.user.findMany();
-      res.json(user);
+      res.json({ user: { user } });
       next();
     })
     .catch((e) => {

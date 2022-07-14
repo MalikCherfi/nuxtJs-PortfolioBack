@@ -17,7 +17,7 @@ module.exports = {
   },
   verifyAccessToken(token) {
     return new Promise((resolve, reject) => {
-      jwt.verify(token.split(' ')[1], accessTokenSecret, (err, payload) => {
+      jwt.verify(token.split(" ")[1], accessTokenSecret, (err, payload) => {
         if (err) {
           const message =
             err.name == "JsonWebTokenError" ? "Unauthorized" : err.message;
