@@ -62,7 +62,6 @@ technologiesRouter.get("/technology", (_, res) => {
     });
 });
 
-
 // Delete One Technology
 technologiesRouter.delete("/technology/:id", (req, res) => {
   const { id } = req.params;

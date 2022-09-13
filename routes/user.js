@@ -35,13 +35,13 @@ userRouter.post("/session", async (req, res) => {
     const checkPassword = bcrypt.compareSync(password, user.password);
 
     if (!checkPassword) {
-      res.json("Email address or password not valid");
+      res.status(401).send("Email address or password not valid");
     } else {
       const accessToken = await jwt.signAccessToken(user);
       res.json(accessToken);
     }
   } catch {
-    res.json("User not registered");
+    res.status(404).send("User not registered");
   }
 });
 
